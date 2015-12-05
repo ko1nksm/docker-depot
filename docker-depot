@@ -1,0 +1,330 @@
+#!/bin/bash
+
+set -eu
+
+DOCKERFILES=${DOCKERFILES:-$HOME/dockerfiles}
+DOCKER_BUILD_OPT=""
+
+if [[ -f "$HOME/.docker-depotrc" ]]; then
+  . "$HOME/.docker-depotrc"
+fi
+
+VERSION=0.1.0
+HUMAN_READABLE=1
+
+DISP_ALL=1
+DISP_ISOLATED=""
+DISP_NONE=""
+
+usage() {
+cat <<DATA
+Usage: docker-depot COMMAND [OPTIONS]
+       docker-depot [ -h | --help | -v | --version ]
+
+COMMAND:
+  list    List information
+  build   Build docker image
+
+Run 'docker-depot COMMAND --help' for more information on a command.
+DATA
+exit 0
+}
+
+build_help() {
+cat <<DATA
+Usage: docker-depot build [OPTION] [NAME...] [BUILD_OPTION]
+  build docker image
+
+OPTION:
+      --all
+      --isolated
+      --none
+  -h, --help
+
+NAME:
+  name[:tag]
+
+BUILD_OPTION:
+
+DATA
+exit 0
+}
+
+list_help() {
+cat <<DATA
+Usage: docker-depot list [OPTION] [NAME...]
+  build docker image
+
+NAME:
+  name[:tag]
+
+OPTION:
+  -m, --machine-readable
+      --all
+      --isolated
+      --none
+  -h, --help
+
+NAME:
+  name[:tag]
+
+DATA
+exit 0
+}
+
+abort() {
+  echo "$1" >&2
+  exit 1
+}
+
+build() {
+  local names=() images=()
+
+  while (( $# > 0 )); do
+    case $1 in
+      --all) DISP_ALL=1 ;;
+      --isolated) DISP_ALL="" DISP_ISOLATED=1 ;;
+      --none) DISP_ALL="" DISP_NONE=1 ;;
+      --help) build_help ;;
+      -*) abort "No such option" ;;
+      *) break
+    esac
+    shift
+  done
+
+  while (( $# > 0 )); do
+    case $1 in
+      -*) break ;;
+      *) names[${#names[@]}]=$1 ;;
+    esac
+    shift
+  done
+
+  if ! (( ${#names[@]} )); then
+    if [[ $DISP_ISOLATED || $DISP_NONE ]]; then
+      names=("@")
+    else
+      abort "Name has not been specified"
+    fi
+  fi
+
+  while IFS="|" read -r image _; do
+    images[${#images[@]}]=$image
+  done < <(get_list "${names[@]}")
+
+  for image in "${images[@]}"; do
+    local name=${image%:*}
+    local tag=${image#*:}
+    cd "$DOCKERFILES/$name/$tag"
+    # shellcheck disable=SC2086
+    docker build -t "$name:$tag" ${DOCKER_BUILD_OPT:-} "$@" ./
+  done
+}
+
+list() {
+  while (( $# > 0 )); do
+    case $1 in
+      --all) DISP_ALL=1 ;;
+      --isolated) DISP_ALL="" DISP_ISOLATED=1 ;;
+      --none) DISP_ALL="" DISP_NONE=1 ;;
+      -m | --machine-readable) HUMAN_READABLE="" ;;
+      --help) list_help ;;
+      -*) abort "No such option" ;;
+      *) break
+    esac
+    shift
+  done
+
+  (
+    if [[ $HUMAN_READABLE ]]; then
+      echo "IMAGE|IMAGE ID|FROM IMAGE|FROM ID|CREATED|PILE SIZE|VIRTUAL SIZE"
+    fi
+    while IFS="|" read -r image id from from_id created psize vsize; do
+      local data=(
+        "$image"
+        "$(disp_id "$id")"
+        "$from"
+        "$(disp_id "$from_id")"
+        "$(disp_date "$created")"
+        "$(disp_size "$psize")"
+        "$(disp_size "$vsize")"
+      )
+      (IFS='|'; echo "${data[*]}")
+    done < <(get_list "$@")
+  ) | column -t -s'|'
+}
+
+disp_id() {
+  if [[ ! $1 ]]; then
+    echo "<none>"
+  elif [[ $1 = 0 ]]; then
+    echo "<isolated>"
+  else
+    echo "${1:0:12}"
+  fi
+}
+
+disp_date() {
+  if [[ ! $1 ]]; then
+    echo "<none>"
+  elif [[ $HUMAN_READABLE ]]; then
+    date -d "$1" +"%Y-%m-%d %H:%M:%S"
+  else
+    echo "${1%.*}Z"
+  fi
+}
+
+disp_size() {
+  if [[ ! $1 ]]; then
+    echo "<none>"
+  elif [[ $HUMAN_READABLE ]]; then
+    if (( $1 > 1000000000)); then
+      echo "$(bc < <(echo "scale=2; $1 / 1000000000")) GB"
+    elif (( $1 > 1000000)); then
+      echo "$(bc < <(echo "scale=2; $1 / 1000000")) MB"
+    elif (( $1 > 1000)); then
+      echo "$(bc < <(echo "scale=2; $1 / 1000")) KB"
+    else
+      echo "$1 B"
+    fi
+  else
+    echo "$1"
+  fi
+}
+
+find_defined_images() {
+  local name tag
+
+  if [[ $# = 0 ]]; then
+    find_defined_images "@"
+    return 0
+  fi
+
+  for image in "$@"; do
+    if [[ $image = *:* ]]; then
+      name=${image%:*}
+      tag=${image#*:}
+    else
+      name=$image
+      tag=""
+    fi
+    [[ $tag ]] || tag="latest"
+
+    if [[ $name = "@" ]]; then
+      while IFS=/ read -r _ name tag _; do
+        echo "$name:$tag"
+      done < <(
+        cd "$DOCKERFILES"
+        find -L ./ -mindepth 3 -maxdepth 3 -name Dockerfile | sort
+      )
+    elif [[ $tag = "@" ]]; then
+      while IFS=/ read -r _ tag _; do
+        echo "$name:$tag"
+      done < <(
+        cd "$DOCKERFILES/$name"
+        find -L ./ -mindepth 2 -maxdepth 2 -name Dockerfile | sort
+      )
+    else
+      if [[ -f "$DOCKERFILES/$name/$tag/Dockerfile" ]]; then
+        echo "$name:$tag"
+      fi
+    fi
+  done
+}
+
+get_list() {
+  declare -A hierarchies
+  local id data
+  local format='{{.Id}} {{.Parent}}:{{.VirtualSize | printf "%.0f"}}'
+  while read -r id data; do
+    hierarchies[$id]=$data
+  done < <(docker images -aq | docker_inspect "$format")
+
+  declare -A name_id_map
+  local image id
+  while read -r image id; do
+    name_id_map[$image]=$id
+  done < <(get_tagged_images | get_image_info "{{.Id}}")
+
+  local format='{{.Id}} {{.Parent}} {{.Created}} {{.VirtualSize | printf "%.0f"}}'
+  local image id parent_id created vsize psize from from_id from_data from_size
+  while read -r image id parent_id created vsize; do
+    from=$(get_from_image "$image")
+
+    if [[ $parent_id ]]; then
+      while [[ $parent_id ]]; do
+        [[ ${name_id_map[$from]:-} = "$parent_id" ]] && break
+        parent_data=${hierarchies[$parent_id]}
+        parent_id=${parent_data%%:*}
+      done
+      if [[ $parent_id ]]; then
+        from_id=$parent_id
+        from_data=${hierarchies[$parent_id]}
+        from_size=${from_data##*:}
+      else
+        from_id=0
+        from_size=0
+      fi
+      psize=$((vsize - from_size))
+    else
+      from_id=""
+      from_size=""
+      psize=""
+    fi
+
+    local disp=$DISP_ALL
+    [[ $id = "" && $DISP_NONE ]] && disp=1
+    [[ $from_id = 0 && $DISP_ISOLATED ]] && disp=1
+
+    if [[ $disp ]]; then
+      echo "$image|$id|$from|$from_id|$created|$psize|$vsize"
+    fi
+  done < <(find_defined_images "$@" | get_image_info "$format")
+}
+
+get_from_image() {
+  local file="$DOCKERFILES/${1/:/\/}/Dockerfile"
+  local line from
+
+  line=$(grep "FROM " "$file" | tail -n 1)
+  from=${line##* }
+  [[ $from = *:* ]] && echo "$from" || echo "$from:latest"
+}
+
+get_image_info() {
+  local format=$1
+  local images name named_images inspect info
+  shift
+
+  images=$(uniq | sort)
+  named_images=$(join <(echo "$images") <(get_tagged_images | sort))
+  if [[ $named_images ]]; then
+    inspect=$(docker_inspect "$format" <<< $named_images)
+    info=$(paste <(echo "$named_images") <(echo "$inspect"))
+    join  -a 1 -1 1 -2 1 -o 0 2.{2..10} <(echo "$images") <(echo "$info")
+  fi
+}
+
+get_tagged_images() {
+  local name tag
+  while read -r name tag id _; do
+    [[ $name = "<none>" ]] && continue
+    echo "$name:$tag"
+  done < <(docker images | tail -n +2)
+}
+
+docker_inspect() {
+  local array=($(cat))
+  docker inspect -f "$1" "${array[@]}"
+}
+
+
+[[ $# = 0 ]] && usage
+
+case $1 in
+  -h | --help) usage ;;
+  -v | --version) echo $VERSION; exit 0 ;;
+  build) build "${@:2}" ;;
+  list) list "${@:2}" ;;
+  *) abort "No such command"
+esac
