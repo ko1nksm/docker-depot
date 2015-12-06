@@ -33,7 +33,7 @@ exit 0
 build_help() {
 cat <<DATA
 Usage: docker-depot build [OPTION] [NAME...] [BUILD_OPTION]
-  build docker image
+  Build docker image
 
 OPTION:
       --all
@@ -42,7 +42,8 @@ OPTION:
   -h, --help
 
 NAME:
-  name[:tag]
+  Docker image names. Supports glob pattern.
+  e.g. name, name:tag, "*", "*:*"
 
 BUILD_OPTION:
 
@@ -53,10 +54,11 @@ exit 0
 list_help() {
 cat <<DATA
 Usage: docker-depot list [OPTION] [NAME...]
-  build docker image
+  Build docker image
 
 NAME:
-  name[:tag]
+  Docker image names. Supports glob pattern.
+  e.g. name, name:tag, "*", "*:*"
 
 OPTION:
   -m, --machine-readable
@@ -196,40 +198,24 @@ find_defined_images() {
   local name tag
 
   if [[ $# = 0 ]]; then
-    find_defined_images "@"
+    find_defined_images "*:*"
     return 0
   fi
 
-  for image in "$@"; do
-    if [[ $image = *:* ]]; then
-      name=${image%:*}
-      tag=${image#*:}
-    else
-      name=$image
-      tag=""
-    fi
-    [[ $tag ]] || tag="latest"
+  while IFS=/ read -r _ name tag _; do
+    for image in "$@"; do
+      [[ $image = *:* ]] || image="$image:latest"
 
-    if [[ $name = "@" ]]; then
-      while IFS=/ read -r _ name tag _; do
+      # shellcheck disable=SC2053
+      if [[ "$name:$tag" = $image ]]; then
         echo "$name:$tag"
-      done < <(
-        cd "$DOCKERFILES"
-        find -L ./ -mindepth 3 -maxdepth 3 -name Dockerfile | sort
-      )
-    elif [[ $tag = "@" ]]; then
-      while IFS=/ read -r _ tag _; do
-        echo "$name:$tag"
-      done < <(
-        cd "$DOCKERFILES/$name"
-        find -L ./ -mindepth 2 -maxdepth 2 -name Dockerfile | sort
-      )
-    else
-      if [[ -f "$DOCKERFILES/$name/$tag/Dockerfile" ]]; then
-        echo "$name:$tag"
+        break
       fi
-    fi
-  done
+    done
+  done < <(
+    cd "$DOCKERFILES"
+    find -L ./ -mindepth 3 -maxdepth 3 -name Dockerfile | sort
+  )
 }
 
 get_list() {
