@@ -292,10 +292,9 @@ get_image_info() {
 }
 
 get_tagged_images() {
-  local name tag
+  local name tag id
   while read -r name tag id _; do
-    [[ $name = "<none>" ]] && continue
-    echo "$name:$tag"
+    [[ $name = "<none>" ]] || echo "$name:$tag"
   done < <(docker images | tail -n +2)
 }
 
