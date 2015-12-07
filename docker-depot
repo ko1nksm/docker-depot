@@ -32,7 +32,7 @@ exit 0
 
 build_help() {
 cat <<DATA
-Usage: docker-depot build [OPTION] [IMAGE...] [BUILD_OPTION]
+Usage: docker-depot build [OPTION] [IMAGE...] -- [BUILD_OPTION...]
   Build docker image
 
 OPTION:
@@ -46,6 +46,7 @@ IMAGE:
   e.g. name, name:tag, "*", "*:*"
 
 BUILD_OPTION:
+  Docker build option.
 
 DATA
 exit 0
@@ -102,6 +103,7 @@ build() {
 
     case $1 in
       --help) build_help ;;
+      --) break ;;
       -*) abort "No such option" ;;
       *) break
     esac
@@ -110,7 +112,7 @@ build() {
 
   while (( $# > 0 )); do
     case $1 in
-      -*) break ;;
+      --) shift; break ;;
       *) names[${#names[@]}]=$1 ;;
     esac
     shift
@@ -133,7 +135,7 @@ build() {
     local tag=${image#*:}
     cd "$DOCKERFILES/$name/$tag"
     # shellcheck disable=SC2086
-    docker build -t "$name:$tag" ${DOCKER_BUILD_OPT:-} "$@" ./
+    echo docker build -t "$name:$tag" ${DOCKER_BUILD_OPT:-} "$@" -q ./
   done
 }
 
