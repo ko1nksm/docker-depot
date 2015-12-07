@@ -79,14 +79,22 @@ abort() {
   exit 1
 }
 
+parse_filter_option() {
+  case $1 in
+    --all) FILTER_ALL=1 ;;
+    --isolated) FILTER_ALL="" FILTER_ISOLATED=1 ;;
+    --none) FILTER_ALL="" FILTER_NONE=1 ;;
+    *) return 1
+  esac
+  return 0
+}
+
 build() {
   local names=() images=()
 
   while (( $# > 0 )); do
+    parse_filter_option "$1" && continue
     case $1 in
-      --all) FILTER_ALL=1 ;;
-      --isolated) FILTER_ALL="" FILTER_ISOLATED=1 ;;
-      --none) FILTER_ALL="" FILTER_NONE=1 ;;
       --help) build_help ;;
       -*) abort "No such option" ;;
       *) break
@@ -125,10 +133,8 @@ build() {
 
 list() {
   while (( $# > 0 )); do
+    parse_filter_option "$1" && continue
     case $1 in
-      --all) FILTER_ALL=1 ;;
-      --isolated) FILTER_ALL="" FILTER_ISOLATED=1 ;;
-      --none) FILTER_ALL="" FILTER_NONE=1 ;;
       -m | --machine-readable) HUMAN_READABLE="" ;;
       --help) list_help ;;
       -*) abort "No such option" ;;
