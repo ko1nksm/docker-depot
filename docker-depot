@@ -112,7 +112,7 @@ build() {
 
   if ! (( ${#names[@]} )); then
     if [[ $FILTER_ISOLATED || $FILTER_NONE ]]; then
-      names=("@")
+      names=("*:*")
     else
       abort "Name has not been specified"
     fi
