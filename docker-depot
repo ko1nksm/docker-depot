@@ -12,9 +12,9 @@ fi
 VERSION=0.1.0
 HUMAN_READABLE=1
 
-DISP_ALL=1
-DISP_ISOLATED=""
-DISP_NONE=""
+FILTER_ALL=1
+FILTER_ISOLATED=""
+FILTER_NONE=""
 
 usage() {
 cat <<DATA
@@ -84,9 +84,9 @@ build() {
 
   while (( $# > 0 )); do
     case $1 in
-      --all) DISP_ALL=1 ;;
-      --isolated) DISP_ALL="" DISP_ISOLATED=1 ;;
-      --none) DISP_ALL="" DISP_NONE=1 ;;
+      --all) FILTER_ALL=1 ;;
+      --isolated) FILTER_ALL="" FILTER_ISOLATED=1 ;;
+      --none) FILTER_ALL="" FILTER_NONE=1 ;;
       --help) build_help ;;
       -*) abort "No such option" ;;
       *) break
@@ -103,7 +103,7 @@ build() {
   done
 
   if ! (( ${#names[@]} )); then
-    if [[ $DISP_ISOLATED || $DISP_NONE ]]; then
+    if [[ $FILTER_ISOLATED || $FILTER_NONE ]]; then
       names=("@")
     else
       abort "Name has not been specified"
@@ -126,9 +126,9 @@ build() {
 list() {
   while (( $# > 0 )); do
     case $1 in
-      --all) DISP_ALL=1 ;;
-      --isolated) DISP_ALL="" DISP_ISOLATED=1 ;;
-      --none) DISP_ALL="" DISP_NONE=1 ;;
+      --all) FILTER_ALL=1 ;;
+      --isolated) FILTER_ALL="" FILTER_ISOLATED=1 ;;
+      --none) FILTER_ALL="" FILTER_NONE=1 ;;
       -m | --machine-readable) HUMAN_READABLE="" ;;
       --help) list_help ;;
       -*) abort "No such option" ;;
@@ -258,9 +258,9 @@ get_list() {
       psize=""
     fi
 
-    local disp=$DISP_ALL
-    [[ $id = "" && $DISP_NONE ]] && disp=1
-    [[ $from_id = 0 && $DISP_ISOLATED ]] && disp=1
+    local disp=$FILTER_ALL
+    [[ $id = "" && $FILTER_NONE ]] && disp=1
+    [[ $from_id = 0 && $FILTER_ISOLATED ]] && disp=1
 
     if [[ $disp ]]; then
       echo "$image|$id|$from|$from_id|$created|$psize|$vsize"
