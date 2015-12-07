@@ -36,7 +36,6 @@ Usage: docker-depot build [OPTION] [NAME...] [BUILD_OPTION]
   Build docker image
 
 OPTION:
-      --all
       --isolated
       --none
       --from FROM_IMAGE
@@ -63,7 +62,6 @@ NAME:
 
 OPTION:
   -m, --machine-readable
-      --all
       --isolated
       --none
       --from FROM_IMAGE
@@ -83,7 +81,6 @@ abort() {
 
 parse_filter_option() {
   case $1 in
-    --all) FILTER_FROM="*" ;;
     --from)
         [[ ${2:-} ]] || abort "--from not specified FROM_IMAGE"
         [[ $2 = *:* ]] && FILTER_FROM=$2 || FILTER_FROM="$2:latest"
