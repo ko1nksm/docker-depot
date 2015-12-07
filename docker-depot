@@ -32,16 +32,16 @@ exit 0
 
 build_help() {
 cat <<DATA
-Usage: docker-depot build [OPTION] [NAME...] [BUILD_OPTION]
+Usage: docker-depot build [OPTION] [IMAGE...] [BUILD_OPTION]
   Build docker image
 
 OPTION:
+      --from FROM_IMAGE
       --isolated
       --none
-      --from FROM_IMAGE
   -h, --help
 
-NAME:
+IMAGE:
   Docker image names. Supports glob pattern.
   e.g. name, name:tag, "*", "*:*"
 
@@ -53,22 +53,19 @@ exit 0
 
 list_help() {
 cat <<DATA
-Usage: docker-depot list [OPTION] [NAME...]
+Usage: docker-depot list [OPTION] [IMAGE...]
   Build docker image
 
-NAME:
+IMAGE:
   Docker image names. Supports glob pattern.
   e.g. name, name:tag, "*", "*:*"
 
 OPTION:
   -m, --machine-readable
+      --from FROM_IMAGE
       --isolated
       --none
-      --from FROM_IMAGE
   -h, --help
-
-NAME:
-  name[:tag]
 
 DATA
 exit 0
