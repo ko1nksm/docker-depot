@@ -182,6 +182,10 @@ list() {
     shift
   done
 
+  if ! (( ${#names[@]} )); then
+    names=("*:*")
+  fi
+
   (
     if [[ $HUMAN_READABLE && $QUIET = "" ]]; then
       echo "IMAGE|IMAGE ID|FROM IMAGE|FROM ID|CREATED|PILE SIZE|VIRTUAL SIZE"
