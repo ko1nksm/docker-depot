@@ -79,10 +79,11 @@ abort() {
 
 parse_filter_option() {
   case $1 in
-    --from)
-        [[ ${2:-} ]] || abort "--from not specified FROM_IMAGE"
-        [[ $2 = *:* ]] && FILTER_FROM=$2 || FILTER_FROM="$2:latest"
-        return 2
+    --from | --from=*)
+        local from=${1:7}
+        [[ $from ]] || abort "--from not specified FROM_IMAGE"
+        [[ $from = *:* ]] && FILTER_FROM=$from || FILTER_FROM="$from:latest"
+        return 1
         ;;
     --isolated) FILTER_ISOLATED=1 ;;
     --none) FILTER_NONE=1 ;;
@@ -289,7 +290,7 @@ get_list() {
     # shellcheck disable=SC2053
     if [[ $from = $FILTER_FROM ]]; then
       if [[ $FILTER_NONE || $FILTER_ISOLATED ]]; then
-        [[ $id = "" && $FILTER_NONE ]] && disp=1
+        [[ $from_id = "" && $FILTER_NONE ]] && disp=1
         [[ $from_id = 0 && $FILTER_ISOLATED ]] && disp=1
       else
         disp=1
