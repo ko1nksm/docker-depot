@@ -306,16 +306,16 @@ get_from_image() {
 
 get_image_info() {
   local format=$1
-  local images name named_images inspect info
+  local images name named_images inspect="" info
   shift
 
   images=$(uniq | sort)
   named_images=$(join <(echo "$images") <(get_tagged_images | sort))
   if [[ $named_images ]]; then
     inspect=$(docker_inspect "$format" <<< $named_images)
-    info=$(paste <(echo "$named_images") <(echo "$inspect"))
-    join  -a 1 -1 1 -2 1 -o 0 2.{2..10} <(echo "$images") <(echo "$info")
   fi
+  info=$(paste <(echo "$named_images") <(echo "$inspect"))
+  join  -a 1 -1 1 -2 1 -o 0 2.{2..10} <(echo "$images") <(echo "$info")
 }
 
 get_tagged_images() {
