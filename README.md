@@ -110,39 +110,6 @@ example
 | docker-depot build --isolated --none    | build the ones that were isolated or none in bash:\* |
 | docker-depot build --from debian        | build the ones that FROM IMAGE is debian:latest      |
 
-### docker-depot pull
-
-**Not implemented**
-
-Pull images from specified repository.
-
-```
-docker-depot pull [OPTION] [IMAGE...]
-```
-
-example
-
-```
-docker-depot pull --namespace private-repository.example.com bash
-```
-
-
-### docker-depot push
-
-**Not implemented**
-
-Push images to specified repository.
-
-```
-docker-depot push [OPTION] [IMAGE...]
-```
-
-example
-
-```
-docker-depot push --namespace private-repository.example.com bash
-```
-
 ## License
 
 MIT License
