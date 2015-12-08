@@ -12,6 +12,7 @@ fi
 VERSION=0.1.0
 HUMAN_READABLE=1
 TRUNC=1
+QUIET=""
 
 FILTER_FROM="*"
 FILTER_FROM_ID=""
@@ -70,6 +71,8 @@ IMAGE:
 OPTION:
   -m, --machine-readable
       --no-trunc          Don't truncate output
+  -q, --quiet             Only show numeric IDs
+  -i, --image             Only show IMAGE
   -h, --help              Print usage
 
 OPTION (filter):
@@ -158,6 +161,8 @@ list() {
     if ! parse_filter_option "$1"; then
       case $1 in
         -m | --machine-readable) HUMAN_READABLE="" ;;
+        -q | --quiet) QUIET="id" ;;
+        -i | --image) QUIET="image" ;;
         --no-trunc) TRUNC="" ;;
         --help) list_help ;;
         -*) abort "No such option" ;;
@@ -168,19 +173,25 @@ list() {
   done
 
   (
-    if [[ $HUMAN_READABLE ]]; then
+    if [[ $HUMAN_READABLE && $QUIET = "" ]]; then
       echo "IMAGE|IMAGE ID|FROM IMAGE|FROM ID|CREATED|PILE SIZE|VIRTUAL SIZE"
     fi
     while IFS="|" read -r image id from from_id created psize vsize; do
-      local data=(
-        "$image"
-        "$(disp_id "$id")"
-        "$from"
-        "$(disp_id "$from_id")"
-        "$(disp_date "$created")"
-        "$(disp_size "$psize")"
-        "$(disp_size "$vsize")"
-      )
+      local data
+      case $QUIET in
+        id) data=("$(disp_id "$id")") ;;
+        image) data=($image) ;;
+        *)
+          data=(
+            "$image"
+            "$(disp_id "$id")"
+            "$from"
+            "$(disp_id "$from_id")"
+            "$(disp_date "$created")"
+            "$(disp_size "$psize")"
+            "$(disp_size "$vsize")"
+          )
+      esac
       (IFS='|'; echo "${data[*]}")
     done < <(get_list "$@")
   ) | column -t -s'|'
