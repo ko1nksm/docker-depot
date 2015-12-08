@@ -148,13 +148,15 @@ build() {
     images[${#images[@]}]=$image
   done < <(get_list "${names[@]}")
 
-  for image in "${images[@]}"; do
-    local name=${image%:*}
-    local tag=${image#*:}
-    cd "$DOCKERFILES/$name/$tag"
-    # shellcheck disable=SC2086
-    docker build -t "$name:$tag" ${DOCKER_BUILD_OPT:-} "$@" -q ./
-  done
+  if (( ${#images[@]} )); then
+    for image in "${images[@]}"; do
+      local name=${image%:*}
+      local tag=${image#*:}
+      cd "$DOCKERFILES/$name/$tag"
+      # shellcheck disable=SC2086
+      docker build -t "$name:$tag" ${DOCKER_BUILD_OPT:-} "$@" -q ./
+    done
+  fi
 }
 
 list() {
