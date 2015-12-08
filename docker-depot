@@ -130,6 +130,7 @@ build() {
   while (( $# > 0 )); do
     case $1 in
       --) shift; break ;;
+      -*) abort "Invalid image name" ;;
       *) names[${#names[@]}]=$1 ;;
     esac
     shift
@@ -172,6 +173,15 @@ list() {
     shift
   done
 
+  local names=()
+  while (( $# > 0 )); do
+    case $1 in
+      -*) abort "Invalid image name" ;;
+      *) names[${#names[@]}]=$1 ;;
+    esac
+    shift
+  done
+
   (
     if [[ $HUMAN_READABLE && $QUIET = "" ]]; then
       echo "IMAGE|IMAGE ID|FROM IMAGE|FROM ID|CREATED|PILE SIZE|VIRTUAL SIZE"
@@ -193,7 +203,7 @@ list() {
           )
       esac
       (IFS='|'; echo "${data[*]}")
-    done < <(get_list "$@")
+    done < <(get_list "${names[@]}")
   ) | column -t -s'|'
 }
 
