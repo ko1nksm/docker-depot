@@ -310,6 +310,8 @@ get_image_info() {
   shift
 
   images=$(uniq | sort)
+  [[ $images ]] || return 0
+
   named_images=$(join <(echo "$images") <(get_tagged_images | sort))
   if [[ $named_images ]]; then
     inspect=$(docker_inspect "$format" <<< $named_images)
