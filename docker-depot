@@ -103,7 +103,7 @@ parse_filter_option() {
 }
 
 build() {
-  local n names=() images=()
+  local names=() images=()
 
   while (( $# > 0 )); do
     if ! parse_filter_option "$1"; then
@@ -147,7 +147,6 @@ build() {
 }
 
 list() {
-  local n
   while (( $# > 0 )); do
     if ! parse_filter_option "$1"; then
       case $1 in
