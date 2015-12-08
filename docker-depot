@@ -135,7 +135,7 @@ build() {
     local tag=${image#*:}
     cd "$DOCKERFILES/$name/$tag"
     # shellcheck disable=SC2086
-    echo docker build -t "$name:$tag" ${DOCKER_BUILD_OPT:-} "$@" -q ./
+    docker build -t "$name:$tag" ${DOCKER_BUILD_OPT:-} "$@" -q ./
   done
 }
 
