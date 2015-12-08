@@ -37,11 +37,11 @@ Directory structure
 
 ```
 $HOME/dockerfiles
-|-- IMAGE
+|-- NAME
 |   `-- TAG
 |       `-- Dockerfile
-|-- USER
-|   `-- IMAGE
+|-- USERNAME
+|   `-- NAME
 |       `-- TAG
 |           `-- Dockerfile
 |-- bash
