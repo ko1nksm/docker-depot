@@ -82,8 +82,8 @@ bash:latest          9a237e3ec1d9  debian:latest  23cb15b0fcec  2015-12-05 08:11
 ko1nksm/ddns:latest  641bd19cb5b8  debian:latest  <isolated>    2015-12-05 05:48:15  220.03 MB  220.03 MB
 ```
 
-* ``<none>`` means that IMAGE has not built.
-* ``<isolated>`` means that the FROM IMAGE has been changed. perhaps need to rebuild.
+* \<none\> means that IMAGE has not built.
+* \<isolated\> means that the FROM IMAGE has been changed. perhaps need to rebuild.
 
 ### docker-depot build
 
