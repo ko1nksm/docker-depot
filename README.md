@@ -96,7 +96,7 @@ example
 | docker-depot list "\*:\*"              | list all                                            |
 | docker-depot list --isolated "bash:\*" | list the ones that were isolated in bash:\*         |
 | docker-depot list --isolated --none    | list the ones that were isolated or none in bash:\* |
-| docker-depot list --from debian        | list the ones that FROM IMAGE is debian:latest      |
+| docker-depot list --from=debian        | list the ones that FROM IMAGE is debian:latest      |
 
 ### docker-depot build
 
@@ -117,7 +117,7 @@ example
 | docker-depot build "\*:\*"              | build all                                            |
 | docker-depot build --isolated "bash:\*" | build the ones that were isolated in bash:\*         |
 | docker-depot build --isolated --none    | build the ones that were isolated or none in bash:\* |
-| docker-depot build --from debian        | build the ones that FROM IMAGE is debian:latest      |
+| docker-depot build --from=debian        | build the ones that FROM IMAGE is debian:latest      |
 
 ## License
 
