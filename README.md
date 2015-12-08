@@ -40,13 +40,21 @@ $HOME/dockerfiles
 |-- IMAGE
 |   `-- TAG
 |       `-- Dockerfile
-`-- bash
-    |-- 4.3
-    |   `-- Dockerfile
-    |-- 4.4
-    |   `-- Dockerfile
-    `-- latest
-        `-- Dockerfile
+|-- USER
+|   `-- IMAGE
+|       `-- TAG
+|           `-- Dockerfile
+|-- bash
+|   |-- 4.3
+|   |   `-- Dockerfile
+|   |-- 4.4
+|   |   `-- Dockerfile
+|   `-- latest
+|       `-- Dockerfile
+`-- ko1nksm
+    `-- ddns
+        `-- latest
+            `-- Dockerfile
 ```
 
 ### .docker-depotrc
@@ -67,10 +75,11 @@ docker-depot list [OPTION] [IMAGE...]
 
 ```
 $ docker-depot list
-IMAGE             IMAGE ID      FROM IMAGE     FROM ID       CREATED              PILE SIZE  VIRTUAL SIZE
-bash:4.3          c2624043c646  debian:latest  <isolated>    2015-12-05 08:06:51  21.17 MB   146.28 MB
-bash:4.4-beta     <none>        debian:latest  <none>        <none>               <none>     <none>
-bash:latest       9a237e3ec1d9  debian:latest  23cb15b0fcec  2015-12-05 08:11:02  21.17 MB   146.28 MB
+IMAGE                IMAGE ID      FROM IMAGE     FROM ID       CREATED              PILE SIZE  VIRTUAL SIZE
+bash:4.3             c2624043c646  debian:latest  <isolated>    2015-12-05 08:06:51  146.28 MB  146.28 MB
+bash:4.4-beta        <none>        debian:latest  <none>        <none>               <none>     <none>
+bash:latest          9a237e3ec1d9  debian:latest  23cb15b0fcec  2015-12-05 08:11:02  21.17 MB   146.28 MB
+ko1nksm/ddns:latest  641bd19cb5b8  debian:latest  <isolated>    2015-12-05 05:48:15  220.03 MB  220.03 MB
 ```
 
 * ``<none>`` means that IMAGE has not built.

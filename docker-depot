@@ -222,7 +222,14 @@ find_defined_images() {
     return 0
   fi
 
-  while IFS=/ read -r _ name tag _; do
+  while IFS=/ read -r _ user name tag _; do
+    if [[ $tag = "Dockerfile" ]]; then
+      tag=$name
+      name=$user
+    else
+      name="$user/$name"
+    fi
+
     for image in "$@"; do
       [[ $image = *:* ]] || image="$image:latest"
 
@@ -234,7 +241,7 @@ find_defined_images() {
     done
   done < <(
     cd "$DOCKERFILES"
-    find -L ./ -mindepth 3 -maxdepth 3 -name Dockerfile | sort
+    find -L ./ -mindepth 3 -maxdepth 4 -name Dockerfile | sort
   )
 }
 
