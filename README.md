@@ -85,19 +85,6 @@ ko1nksm/ddns:latest  641bd19cb5b8  debian:latest  <isolated>    2015-12-05 05:48
 * ``<none>`` means that IMAGE has not built.
 * ``<isolated>`` means that the FROM IMAGE has been changed. perhaps need to rebuild.
 
-example
-
-| Command                                | Description                                         |
-| -------------------------------------- | --------------------------------------------------- |
-| docker-depot list                      | list all                                            |
-| docker-depot list bash                 | list bash:latest                                    |
-| docker-depot list bash:4.3 bash:4.4    | list bash:4.3 and bash:4.4                          |
-| docker-depot list "bash:\*"            | list in bash:\*                                     |
-| docker-depot list "\*:\*"              | list all                                            |
-| docker-depot list --isolated "bash:\*" | list the ones that were isolated in bash:\*         |
-| docker-depot list --isolated --none    | list the ones that were isolated or none in bash:\* |
-| docker-depot list --from=debian        | list the ones that FROM IMAGE is debian:latest      |
-
 ### docker-depot build
 
 Build your docker image with image name.
@@ -106,18 +93,20 @@ Build your docker image with image name.
 docker-depot build [OPTION] [IMAGE...] -- [BUILD_OPTION...]
 ```
 
-example
+### filter parameters
 
-| Command                                 | Description                                          |
-| --------------------------------------- | ---------------------------------------------------- |
-| docker-depot build                      | build without arguments is not supported             |
-| docker-depot build bash                 | build bash:latest                                    |
-| docker-depot build bash:4.3 bash:4.4    | build bash:4.3 and bash:4.4                          |
-| docker-depot build "bash:\*"            | build in bash:\*                                     |
-| docker-depot build "\*:\*"              | build all                                            |
-| docker-depot build --isolated "bash:\*" | build the ones that were isolated in bash:\*         |
-| docker-depot build --isolated --none    | build the ones that were isolated or none in bash:\* |
-| docker-depot build --from=debian        | build the ones that FROM IMAGE is debian:latest      |
+docker-depot list and build have the same filter parameters.
+
+| [OPTION]            | [IMAGE...]        | Description                                         |
+| ------------------- | ----------------- | --------------------------------------------------- |
+| --from=FROM_IMAGE   |                   | FROM IMAGE is FROM_IMAGE. Glob pattern is available |
+| --from-id[=FROM_ID] |                   | FROM ID is begin with FROM_ID. If FROM_ID not specified match all except \<isolated\> and \<none\> |
+| --isolated          |                   | FROM ID matches to \<isolated\>                     |
+| --none              |                   | FROM ID matches to \<none\>                         |
+|                     | bash              | Same as bash:latest                                 |
+|                     | bash:4.3 bash:4.4 | Multiple images can be used                         |
+|                     | "bash:\*"         | Glob pattern is available                           |
+|                     | "\*:\*"           | This matches all images                             |
 
 ## License
 

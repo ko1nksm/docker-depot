@@ -19,7 +19,7 @@ FILTER_NONE=""
 
 usage() {
 cat <<DATA
-Usage: docker-depot COMMAND [OPTIONS]
+Usage: docker-depot COMMAND [OPTION]
        docker-depot [ -h | --help | -v | --version ]
 
 COMMAND:
@@ -37,11 +37,14 @@ Usage: docker-depot build [OPTION] [IMAGE...] -- [BUILD_OPTION...]
   Build docker image
 
 OPTION:
-      --from=FROM_IMAGE
-      --from-id[=FROM_ID]
-      --isolated
-      --none
   -h, --help
+
+OPTION (filter):
+  --from=FROM_IMAGE
+  --from-id[=FROM_ID]
+  --isolated
+  --none
+
 
 IMAGE:
   Docker image names. Supports glob pattern.
@@ -65,11 +68,13 @@ IMAGE:
 
 OPTION:
   -m, --machine-readable
-      --from=FROM_IMAGE
-      --from-id[=FROM_ID]
-      --isolated
-      --none
   -h, --help
+
+OPTION (filter):
+  --from=FROM_IMAGE
+  --from-id[=FROM_ID]
+  --isolated
+  --none
 
 DATA
 exit 0
@@ -129,7 +134,7 @@ build() {
     if [[ $FILTER_FROM != "*" || $FILTER_FROM_ID || $FILTER_ISOLATED || $FILTER_NONE ]]; then
       names=("*:*")
     else
-      abort "Name has not been specified"
+      abort "build is required filter options or name"
     fi
   fi
 
