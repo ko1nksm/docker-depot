@@ -80,10 +80,10 @@ abort() {
 parse_filter_option() {
   case $1 in
     --from | --from=*)
-        local from=${1:7}
-        [[ $from ]] || abort "--from not specified FROM_IMAGE"
-        [[ $from = *:* ]] && FILTER_FROM=$from || FILTER_FROM="$from:latest"
-        ;;
+      local from=${1:7}
+      [[ $from ]] || abort "--from not specified FROM_IMAGE"
+      [[ $from = *:* ]] && FILTER_FROM=$from || FILTER_FROM="$from:latest"
+      ;;
     --isolated) FILTER_ISOLATED=1 ;;
     --none) FILTER_NONE=1 ;;
     *) return 1
