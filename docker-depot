@@ -256,32 +256,26 @@ disp_size() {
 }
 
 find_defined_images() {
-  local path name tag
-
   if [[ $# = 0 ]]; then
     find_defined_images "*:*"
-    return 0
+    return
   fi
 
   while IFS= read -r line; do
-    path=${line:2}
+    local path=${line:2}
     path=${path%/*}
-    name=${path%/*}
-    tag=${path##*/}
+    local name=${path%/*}
+    local tag=${path##*/}
 
     for image in "$@"; do
       [[ $image = *:* ]] || image="$image:latest"
 
       # shellcheck disable=SC2053
-      if [[ "$name:$tag" = $image ]]; then
-        echo "$name:$tag"
-        break
-      fi
+      [[ "$name:$tag" = $image ]] || continue
+      echo "$name:$tag"
+      break
     done
-  done < <(
-    cd "$DOCKERFILES"
-    find -L ./ -mindepth 3 -name Dockerfile | sort
-  )
+  done < <(cd "$DOCKERFILES"; find -L ./ -mindepth 3 -name Dockerfile | sort)
 }
 
 get_list() {
@@ -345,7 +339,7 @@ get_list() {
 }
 
 load_docker_data() {
-  local images="" inspect=""
+  local images inspect
 
   images=$(while read -r name tag id _; do
     echo "$id $name $tag"
