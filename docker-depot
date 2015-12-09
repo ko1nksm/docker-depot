@@ -285,43 +285,43 @@ find_defined_images() {
 }
 
 get_list() {
+  docker_data=$(load_docker_data)
+
   declare -A hierarchies
-  local id data
-  local format='{{.Id}} {{.Parent}}:{{.VirtualSize | printf "%.0f"}}'
-  while read -r id data; do
-    hierarchies[$id]=$data
-  done < <(docker images -aq | docker_inspect "$format")
+  declare -A by_image
+  local data
+  while read -ra data; do
+    hierarchies[${data[0]}]=${data[1]}
+    if [[ ${data[4]} != "<none>" ]]; then
+      by_image["${data[4]}:${data[5]}"]=${data[@]}
+    fi
+  done <<< "$docker_data"
 
-  declare -A name_id_map
-  local image id
-  while read -r image id; do
-    name_id_map[$image]=$id
-  done < <(get_tagged_images | get_image_info "{{.Id}}")
+  while read -r image; do
+    local id="" parent_id="" from="" from_id="" created="" vsize="" psize=""
 
-  local format='{{.Id}} {{.Parent}} {{.Created}} {{.VirtualSize | printf "%.0f"}}'
-  local image id parent_id created vsize psize from from_id from_data from_size
-  while read -r image id parent_id created vsize; do
     from=$(get_from_image "$image")
 
-    if [[ $parent_id ]]; then
-      while [[ $parent_id ]]; do
-        [[ ${name_id_map[$from]:-} = "$parent_id" ]] && break
-        parent_data=${hierarchies[$parent_id]}
-        parent_id=${parent_data%%:*}
+    if [[ ${by_image[$image]:-} ]]; then
+      local fields=(${by_image[$image]})
+      id=${fields[0]}
+      parent_id=${fields[1]}
+      created=${fields[2]}
+      vsize=${fields[3]}
+
+      local from_data=(${by_image[$from]})
+      from_id=$parent_id
+
+      while [[ $from_id != 0 ]]; do
+        [[ $from_id = "${from_data[0]}" ]] && break
+        from_id=${hierarchies[$from_id]}
       done
-      if [[ $parent_id ]]; then
-        from_id=$parent_id
-        from_data=${hierarchies[$parent_id]}
-        from_size=${from_data##*:}
-      else
-        from_id=0
-        from_size=0
+
+      local from_size=0
+      if [[ $from_id != 0 ]]; then
+        from_size=${from_data[3]}
       fi
       psize=$((vsize - from_size))
-    else
-      from_id=""
-      from_size=""
-      psize=""
     fi
 
     local disp=""
@@ -339,7 +339,25 @@ get_list() {
     if [[ $disp ]]; then
       echo "$image|$id|$from|$from_id|$created|$psize|$vsize"
     fi
-  done < <(find_defined_images "$@" | get_image_info "$format")
+  done < <(find_defined_images "$@")
+}
+
+load_docker_data() {
+  local images=$(while read -r name tag id _; do
+    echo "$id $name $tag"
+  done < <(docker images -a --no-trunc | tail -n +2) | sort)
+
+  local ids=$(while read -r id _; do
+    echo "$id"
+  done <<< "$images" | uniq)
+
+  local format='{{.Id}}|{{.Parent}}|{{.Created}}|{{.VirtualSize | printf "%.0f"}}'
+  local inspect=$(while IFS="|" read -r id parent created virtual_size _; do
+    [[ $parent ]] || parent=0
+    echo "$id $parent $created $virtual_size"
+  done < <(docker inspect -f "$format" $ids) | sort)
+
+  join  -a 1 -1 1 -2 1 -o 0 1.{2..4} 2.{2..4} <(echo "$inspect") <(echo "$images")
 }
 
 get_from_image() {
@@ -350,35 +368,6 @@ get_from_image() {
   from=${line##* }
   [[ $from = *:* ]] && echo "$from" || echo "$from:latest"
 }
-
-get_image_info() {
-  local format=$1
-  local images name named_images inspect="" info
-  shift
-
-  images=$(uniq | sort)
-  [[ $images ]] || return 0
-
-  named_images=$(join <(echo "$images") <(get_tagged_images | sort))
-  if [[ $named_images ]]; then
-    inspect=$(docker_inspect "$format" <<< $named_images)
-  fi
-  info=$(paste <(echo "$named_images") <(echo "$inspect"))
-  join  -a 1 -1 1 -2 1 -o 0 2.{2..10} <(echo "$images") <(echo "$info")
-}
-
-get_tagged_images() {
-  local name tag id
-  while read -r name tag id _; do
-    [[ $name = "<none>" ]] || echo "$name:$tag"
-  done < <(docker images | tail -n +2)
-}
-
-docker_inspect() {
-  local array=($(cat))
-  docker inspect -f "$1" "${array[@]}"
-}
-
 
 [[ $# = 0 ]] && usage
 
