@@ -256,20 +256,18 @@ disp_size() {
 }
 
 find_defined_images() {
-  local name tag
+  local path name tag
 
   if [[ $# = 0 ]]; then
     find_defined_images "*:*"
     return 0
   fi
 
-  while IFS=/ read -r _ user name tag _; do
-    if [[ $tag = "Dockerfile" ]]; then
-      tag=$name
-      name=$user
-    else
-      name="$user/$name"
-    fi
+  while IFS= read -r line; do
+    path=${line:2}
+    path=${path%/*}
+    name=${path%/*}
+    tag=${path##*/}
 
     for image in "$@"; do
       [[ $image = *:* ]] || image="$image:latest"
@@ -282,7 +280,7 @@ find_defined_images() {
     done
   done < <(
     cd "$DOCKERFILES"
-    find -L ./ -mindepth 3 -maxdepth 4 -name Dockerfile | sort
+    find -L ./ -mindepth 3 -name Dockerfile | sort
   )
 }
 
