@@ -290,12 +290,14 @@ get_list() {
   declare -A hierarchies
   declare -A by_image
   local data
-  while read -ra data; do
-    hierarchies[${data[0]}]=${data[1]}
-    if [[ ${data[4]} != "<none>" ]]; then
-      by_image["${data[4]}:${data[5]}"]=${data[@]}
-    fi
-  done <<< "$docker_data"
+  if [[ $docker_data ]]; then
+    while read -ra data; do
+      hierarchies[${data[0]}]=${data[1]}
+      if [[ ${data[4]} != "<none>" ]]; then
+        by_image["${data[4]}:${data[5]}"]=${data[*]}
+      fi
+    done <<< "$docker_data"
+  fi
 
   while read -r image; do
     local id="" parent_id="" from="" from_id="" created="" vsize="" psize=""
@@ -343,19 +345,24 @@ get_list() {
 }
 
 load_docker_data() {
-  local images=$(while read -r name tag id _; do
+  local images="" inspect=""
+
+  images=$(while read -r name tag id _; do
     echo "$id $name $tag"
   done < <(docker images -a --no-trunc | tail -n +2) | sort)
 
-  local ids=$(while read -r id _; do
-    echo "$id"
-  done <<< "$images" | uniq)
+  [[ $images ]] || return 0
+
+  local ids=()
+  while read -r id _; do
+    ids[${#ids[@]}]=$id
+  done <<< "$images"
 
   local format='{{.Id}}|{{.Parent}}|{{.Created}}|{{.VirtualSize | printf "%.0f"}}'
-  local inspect=$(while IFS="|" read -r id parent created virtual_size _; do
+  inspect=$(while IFS="|" read -r id parent created virtual_size _; do
     [[ $parent ]] || parent=0
     echo "$id $parent $created $virtual_size"
-  done < <(docker inspect -f "$format" $ids) | sort)
+  done < <(docker inspect -f "$format" "${ids[@]}") | sort)
 
   join  -a 1 -1 1 -2 1 -o 0 1.{2..4} 2.{2..4} <(echo "$inspect") <(echo "$images")
 }
