@@ -13,6 +13,7 @@ VERSION=0.1.0
 HUMAN_READABLE=1
 TRUNC=1
 QUIET=""
+LIST_MATCH=1
 
 FILTER_FROM="*"
 FILTER_FROM_ID=""
@@ -70,6 +71,7 @@ IMAGE:
 
 OPTION:
   -m, --machine-readable
+  -v, --invert            List unmatched image
       --no-trunc          Don't truncate output
   -q, --quiet             Only show numeric IDs
   -i, --image             Only show IMAGE
@@ -166,6 +168,7 @@ list() {
         -m | --machine-readable) HUMAN_READABLE="" ;;
         -q | --quiet) QUIET="id" ;;
         -i | --image) QUIET="image" ;;
+        -v | --invert) LIST_MATCH=0 ;;
         --no-trunc) TRUNC="" ;;
         --help) list_help ;;
         -*) abort "No such option" ;;
@@ -267,14 +270,19 @@ find_defined_images() {
     local name=${path%/*}
     local tag=${path##*/}
 
+    local match=0
     for image in "$@"; do
       [[ $image = *:* ]] || image="$image:latest"
 
       # shellcheck disable=SC2053
-      [[ "$name:$tag" = $image ]] || continue
-      echo "$name:$tag"
-      break
+      if [[ "$name:$tag" = $image ]]; then
+        match=1
+        break
+      fi
     done
+    if ((match == LIST_MATCH)); then
+      echo "$name:$tag"
+    fi
   done < <(cd "$DOCKERFILES"; find -L ./ -mindepth 3 -name Dockerfile | sort)
 }
 
