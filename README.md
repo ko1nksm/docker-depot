@@ -44,6 +44,11 @@ $HOME/dockerfiles
 |   `-- NAME
 |       `-- TAG
 |           `-- Dockerfile
+|-- REGISTRYHOST/
+|   `-- USERNAME
+|       `-- NAME
+|           `-- TAG
+|               `-- Dockerfile
 |-- bash
 |   |-- 4.3
 |   |   `-- Dockerfile
