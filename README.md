@@ -2,8 +2,6 @@
 
 The docker-depot is the tool for develop docker image.
 
-**This is experiment project. Specifications changed significantly or might abolished.**
-
 ## Motivation
 
 What created for?
@@ -122,6 +120,16 @@ docker-depot list and build have the same filter parameters.
 |                     | bash:4.3 bash:4.4 | Multiple images can be used                         |
 |                     | "bash:\*"         | Glob pattern is available                           |
 |                     | "\*:\*"           | This matches all images                             |
+
+## Changelog
+
+### 0.2.0
+
+* Release Candidate
+
+### 0.1.0
+
+* Public beta
 
 ## License
 
