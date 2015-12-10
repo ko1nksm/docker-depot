@@ -1,11 +1,8 @@
 # docker-depot
 
-The docker-depot is the tool for develop docker image.
+The docker-depot is the tool for develop docker image more easily.
 
 ## Motivation
-
-What created for?
-  * To develop the image of docker more easily.
 
 Replacement of the docker command?
   * No. just a support tool.
