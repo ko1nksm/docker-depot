@@ -3,7 +3,7 @@
 set -eu
 
 DOCKERFILES=""
-DOCKER_BUILD_OPT=""
+DOCKER_BUILD_OPTION=""
 
 VERSION=0.1.0
 HUMAN_READABLE=1
@@ -153,7 +153,7 @@ build() {
       local tag=${image#*:}
       cd "$DOCKERFILES/$name/$tag"
       # shellcheck disable=SC2086
-      docker build -t "$name:$tag" ${DOCKER_BUILD_OPT:-} "$@" ./
+      docker build -t "$name:$tag" ${DOCKER_BUILD_OPTION:-} "$@" ./
     done
   fi
 }
