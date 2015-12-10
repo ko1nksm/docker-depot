@@ -5,7 +5,7 @@ set -eu
 DOCKERFILES=""
 DOCKER_BUILD_OPTION=""
 
-VERSION=0.2.0
+VERSION=0.2.1
 HUMAN_READABLE=1
 TRUNC=1
 QUIET=""
@@ -434,7 +434,7 @@ load_depotrc() {
 }
 
 load_depotrc "$PWD"
-[[ "$HOME/.depotrc" ]] && . "$HOME/.depotrc"
+[[ -e "$HOME/.depotrc" ]] && . "$HOME/.depotrc"
 
 [[ $DOCKERFILES ]] || abort "Not found dockerfiles directory"
 
