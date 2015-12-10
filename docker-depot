@@ -75,6 +75,7 @@ OPTION:
       --no-trunc          Don't truncate output
   -q, --quiet             Only show numeric IDs
   -i, --image             Only show IMAGE
+  -n, --name              Only show NAME (without tag)
   -h, --help              Print usage
 
 OPTION (filter):
@@ -167,6 +168,7 @@ list() {
       case $1 in
         -m | --machine-readable) HUMAN_READABLE="" ;;
         -q | --quiet) QUIET="id" ;;
+        -n | --name) QUIET="name" ;;
         -i | --image) QUIET="image" ;;
         -v | --invert) LIST_MATCH=0 ;;
         --no-trunc) TRUNC="" ;;
@@ -191,16 +193,29 @@ list() {
     names=("*:*")
   fi
 
-  (
-    if [[ $HUMAN_READABLE && $QUIET = "" ]]; then
-      echo "IMAGE|IMAGE ID|FROM IMAGE|FROM ID|CREATED|PILE SIZE|VIRTUAL SIZE"
-    fi
-    while IFS="|" read -r image id from from_id created psize vsize; do
-      local data
-      case $QUIET in
-        id) data=("$(disp_id "$id")") ;;
-        image) data=($image) ;;
-        *)
+  case $QUIET in
+    id)
+      while IFS="|" read -r _ id _; do
+        echo "$id"
+      done < <(get_list "${names[@]}")
+      ;;
+    name)
+      while IFS="|" read -r image _; do
+        echo "${image%:*}"
+      done < <(get_list "${names[@]}") | uniq
+      ;;
+    image)
+      while IFS="|" read -r image _; do
+        echo "$image"
+      done < <(get_list "${names[@]}")
+      ;;
+    *)
+      (
+        if [[ $HUMAN_READABLE ]]; then
+          echo "IMAGE|IMAGE ID|FROM IMAGE|FROM ID|CREATED|PILE SIZE|VIRTUAL SIZE"
+        fi
+        while IFS="|" read -r image id from from_id created psize vsize; do
+          local data
           data=(
             "$image"
             "$(disp_id "$id")"
@@ -210,10 +225,11 @@ list() {
             "$(disp_size "$psize")"
             "$(disp_size "$vsize")"
           )
-      esac
-      (IFS='|'; echo "${data[*]}")
-    done < <(get_list "${names[@]}")
-  ) | column -t -s'|'
+          IFS="|"
+          echo "${data[*]}"
+        done < <(get_list "${names[@]}")
+      ) | column -t -s'|'
+    esac
 }
 
 disp_id() {
