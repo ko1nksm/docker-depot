@@ -296,7 +296,7 @@ get_list() {
   while read -r image; do
     local id="" parent_id="" from="" from_id="" created="" vsize="" psize=""
 
-    from=$(get_from_image "$image")
+    from=$(get_base_image "$image")
 
     if [[ ${by_image[$image]:-} ]]; then
       local fields=(${by_image[$image]})
@@ -361,7 +361,7 @@ load_docker_data() {
   join  -a 1 -1 1 -2 1 -o 0 1.{2..4} 2.{2..4} <(echo "$inspect") <(echo "$images")
 }
 
-get_from_image() {
+get_base_image() {
   local file="$DOCKERFILES/${1/:/\/}/Dockerfile"
   local line from
 
