@@ -2,12 +2,8 @@
 
 set -eu
 
-DOCKERFILES=${DOCKERFILES:-$HOME/dockerfiles}
+DOCKERFILES=""
 DOCKER_BUILD_OPT=""
-
-if [[ -f "$HOME/.docker-depotrc" ]]; then
-  . "$HOME/.docker-depotrc"
-fi
 
 VERSION=0.1.0
 HUMAN_READABLE=1
@@ -421,6 +417,26 @@ get_base_image() {
   from=${line##* }
   [[ $from = *:* ]] && echo "$from" || echo "$from:latest"
 }
+
+load_depotrc() {
+  local dir=$1
+
+  while [[ $dir ]]; do
+    if [[ -e "$dir/.depotrc" ]]; then
+      DOCKERFILES=$dir
+      . "$dir/.depotrc"
+      return 0
+    fi
+    dir=${dir%/*}
+    [[ $dir = "$HOME" ]] && return 0
+  done
+ return 0
+}
+
+load_depotrc "$PWD"
+[[ "$HOME/.depotrc" ]] && . "$HOME/.depotrc"
+
+[[ $DOCKERFILES ]] || abort "Not found dockerfiles directory"
 
 [[ $# = 0 ]] && usage
 

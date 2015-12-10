@@ -33,10 +33,13 @@ Why don't you use docker hub?
 
 ### Prepare your dockerfiles directory
 
+By default. The directory by which the .depotrc file was found is recognized as a dockerfiles.
+
 Directory structure
 
 ```
-$HOME/dockerfiles
+dockerfiles
+|-- .depotrc
 |-- NAME
 |   `-- TAG
 |       `-- Dockerfile
@@ -44,7 +47,7 @@ $HOME/dockerfiles
 |   `-- NAME
 |       `-- TAG
 |           `-- Dockerfile
-|-- REGISTRYHOST/
+|-- REGISTRYHOST
 |   `-- USERNAME
 |       `-- NAME
 |           `-- TAG
@@ -62,13 +65,20 @@ $HOME/dockerfiles
             `-- Dockerfile
 ```
 
-### .docker-depotrc
+### .depotrc
 
-| Environment      | Description           |
-| ---------------- | --------------------- |
-| DOCKERFILES      | Dockerfiles directory |
-| DOCKER_BUILD_OPT | Docker build option   |
 
+| Environment         | Description           | Default                                        |
+| ------------------- | --------------------- | ---------------------------------------------- |
+| DOCKERFILES         | Dockerfiles directory | The directory where the .depotrc file is found |
+| DOCKER_BUILD_OPTION | Docker build option   | None                                           |
+
+
+***lookup path***
+
+docker-depot climbs up the directory tree looking for the first .depotrc it can find,
+from the current directory until the before of the home directory.
+Then load if exists in the home directory.
 
 ### docker-depot list
 
