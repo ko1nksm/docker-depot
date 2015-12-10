@@ -232,6 +232,34 @@ list() {
     esac
 }
 
+completions() {
+  if (( $# == 0 )); then
+    echo "build list"
+    return 0
+  fi
+
+  local command=$1
+  shift
+  if [[ $command =~ ^build|list$ ]]; then
+    echo "--from --from-id --isolated --none"
+
+    while (( $# > 0 )); do
+      if ! parse_filter_option "$1"; then
+        case $1 in
+          --) break ;;
+          *) break
+        esac
+      fi
+      shift
+    done
+
+    while IFS="|" read -r image _; do
+      echo "$image"
+    done < <(get_list)
+    return 0
+  fi
+}
+
 disp_id() {
   if [[ ! $1 ]]; then
     echo "<none>"
@@ -401,5 +429,6 @@ case $1 in
   -v | --version) echo $VERSION; exit 0 ;;
   build) build "${@:2}" ;;
   list) list "${@:2}" ;;
+  completions) completions "${@:2}" ;;
   *) abort "No such command"
 esac
