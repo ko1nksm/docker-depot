@@ -316,9 +316,8 @@ disp_size() {
   if [[ ! $1 ]]; then
     echo "<none>"
   elif [[ $HUMAN_READABLE ]]; then
-    local units=("B" "KB" "MB" "GB")
-    local scale=2
-    for (( i=${#units[@]}-1; i >= 0; i-- )) ; do
+    local i units=("B" "KB" "MB" "GB") scale=2
+    for (( i=${#units[@]}-1; i > 0; i-- )) ; do
       if (( $1 > 10 ** (i*3) )); then
         local ans=$(($1 * (10 ** scale) / (10 ** (i*3)) ))
         local lntegral=$((ans / (10 ** scale)))
@@ -327,7 +326,7 @@ disp_size() {
         return 0
       fi
     done
-    echo "$1 ${units[0]}"
+    echo "$1 ${units[i]}"
   else
     echo "$1"
   fi
