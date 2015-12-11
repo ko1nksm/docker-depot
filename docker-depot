@@ -327,14 +327,15 @@ find_defined_images() {
 }
 
 get_list() {
+  # 0:id 1:name 2:tag 3:parent 4:created 5:virtualsize
   docker_data=$(load_docker_data)
 
   local data
   if [[ $docker_data ]]; then
     while read -ra data; do
-      declare $(hash_key hierarchies "${data[0]}")="${data[1]}"
-      if [[ ${data[4]} != "<none>" ]]; then
-        declare $(hash_key by_image "${data[4]}:${data[5]}")="${data[*]}"
+      declare $(hash_key hierarchies "${data[0]}")="${data[3]}"
+      if [[ ${data[1]} != "<none>" ]]; then
+        declare $(hash_key by_image "${data[1]}:${data[2]}")="${data[*]}"
       fi
     done <<< "$docker_data"
   fi
@@ -349,9 +350,9 @@ get_list() {
     if [[ $fields ]]; then
       fields=($fields)
       id=${fields[0]}
-      parent_id=${fields[1]}
-      created=${fields[2]}
-      vsize=${fields[3]}
+      parent_id=${fields[3]}
+      created=${fields[4]}
+      vsize=${fields[5]}
 
       local from_data
       from_data=($(hash_get by_image "$from"))
@@ -364,7 +365,7 @@ get_list() {
 
       local from_size=0
       if [[ $from_id != 0 ]]; then
-        from_size=${from_data[3]}
+        from_size=${from_data[5]}
       fi
       psize=$((vsize - from_size))
     fi
@@ -407,7 +408,8 @@ load_docker_data() {
     echo "$id $parent $created $virtual_size"
   done < <(docker inspect -f "$format" "${ids[@]}") | sort)
 
-  join  -a 1 -1 1 -2 1 -o 0 1.{2..4} 2.{2..4} <(echo "$inspect") <(echo "$images")
+  # 0:id 1:name 2:tag 3:parent 4:created 5:virtualsize
+  join <(echo "$images") <(echo "$inspect")
 }
 
 get_base_image() {
