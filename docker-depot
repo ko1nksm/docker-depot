@@ -323,7 +323,7 @@ find_defined_images() {
     if ((match == LIST_MATCH)); then
       echo "$name:$tag"
     fi
-  done < <(cd "$DOCKERFILES"; find -L ./ -mindepth 3 -name Dockerfile | sort)
+  done < <(cd "$DOCKERFILES"; find -L . -mindepth 3 -name Dockerfile | sort)
 }
 
 get_list() {
