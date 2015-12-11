@@ -118,6 +118,18 @@ docker-depot list and build have the same filter parameters.
 |                     | "bash:\*"         | Glob pattern is available                           |
 |                     | "\*:\*"           | This matches all images                             |
 
+## Known problems
+
+### Mac OS X
+
+Requires latest (maybe >=1.2) bash-completion for completion works properly.
+
+To install via homebrew
+
+```
+brew install bash-completion
+```
+
 ## Changelog
 
 ### 0.2.0
