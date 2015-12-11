@@ -16,6 +16,12 @@ FILTER_FROM_ID=""
 FILTER_ISOLATED=""
 FILTER_NONE=""
 
+if date -f /dev/null > /dev/null 2>&1; then
+  DATE_TYPE="gnu"
+else
+  DATE_TYPE="bsd"
+fi
+
 usage() {
 cat <<DATA
 Usage: docker-depot COMMAND [OPTION]
@@ -274,7 +280,12 @@ disp_date() {
   if [[ ! $1 ]]; then
     echo "<none>"
   elif [[ $HUMAN_READABLE ]]; then
-    date -d "$1" +"%Y-%m-%d %H:%M:%S"
+    local format=+"%Y-%m-%d %H:%M:%S"
+    case $DATE_TYPE in
+      gnu) date -d "$1" "$format" ;;
+      bsd) date -j -f "%Y-%m-%dT%H:%M:%S %z" "${1%.*} +0000" "$format" ;;
+      *) abort "Unknown DATE_TYPE '$DATE_TYPE'"
+    esac
   else
     echo "${1%.*}Z"
   fi
