@@ -230,8 +230,29 @@ list() {
           IFS="|"
           echo "${data[*]}"
         done < <(get_list "${names[@]}")
-      ) | column -t -s'|'
+      ) | table "|" # same as column -t -s "|""
     esac
+}
+
+table() {
+  local text fields field index len=()
+
+  text=$(cat)
+
+  while IFS="$1" read -ra fields; do
+    index=0
+    for field in "${fields[@]}"; do
+      (( ${#field} > ${len[$index]:-0} )) && len[$index]=${#field}
+      index=$((index+1))
+    done
+  done <<< "$text"
+
+  local format=${len[*]}
+  format="%-${format// /s  %-}s"
+  while IFS="$1" read -ra fields; do
+    # shellcheck disable=SC2059
+    printf "$format\n" "${fields[@]}"
+  done <<< "$text"
 }
 
 completions() {
