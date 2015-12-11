@@ -329,14 +329,12 @@ find_defined_images() {
 get_list() {
   docker_data=$(load_docker_data)
 
-  declare -A hierarchies
-  declare -A by_image
   local data
   if [[ $docker_data ]]; then
     while read -ra data; do
-      hierarchies[${data[0]}]=${data[1]}
+      declare $(hash_key hierarchies "${data[0]}")="${data[1]}"
       if [[ ${data[4]} != "<none>" ]]; then
-        by_image["${data[4]}:${data[5]}"]=${data[*]}
+        declare $(hash_key by_image "${data[4]}:${data[5]}")="${data[*]}"
       fi
     done <<< "$docker_data"
   fi
@@ -346,19 +344,22 @@ get_list() {
 
     from=$(get_base_image "$image")
 
-    if [[ ${by_image[$image]:-} ]]; then
-      local fields=(${by_image[$image]})
+    local fields
+    fields=$(hash_get by_image "$image")
+    if [[ $fields ]]; then
+      fields=($fields)
       id=${fields[0]}
       parent_id=${fields[1]}
       created=${fields[2]}
       vsize=${fields[3]}
 
-      local from_data=(${by_image[$from]})
+      local from_data
+      from_data=($(hash_get by_image "$from"))
       from_id=$parent_id
 
       while [[ $from_id != 0 ]]; do
         [[ $from_id = "${from_data[0]}" ]] && break
-        from_id=${hierarchies[$from_id]}
+        from_id=$(hash_get hierarchies "$from_id")
       done
 
       local from_size=0
@@ -431,6 +432,22 @@ load_depotrc() {
     [[ $dir = "$HOME" ]] && return 0
   done
  return 0
+}
+
+hash_key() {
+  local key
+  key=$(base64 <<< $2)
+  key=${key//=/_e}
+  key=${key//+/_p}
+  key=${key//-/_m}
+  key=${key//$'\n'/}
+  echo "$1_$key"
+}
+
+hash_get() {
+  local name
+  name=$(hash_key "$1" "$2")
+  echo "${!name:-}"
 }
 
 load_depotrc "$PWD"
