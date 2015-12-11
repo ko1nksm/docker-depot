@@ -410,7 +410,7 @@ load_docker_data() {
 }
 
 get_base_image() {
-  local file="$DOCKERFILES/${1/:/\/}/Dockerfile"
+  local file="$DOCKERFILES/${1/://}/Dockerfile"
   local line from
 
   line=$(grep "FROM " "$file" | tail -n 1)
