@@ -459,13 +459,13 @@ load_depotrc() {
   local dir=$1
 
   while [[ $dir ]]; do
+    [[ $dir = "$HOME" ]] && return 0
     if [[ -e "$dir/.depotrc" ]]; then
       DOCKERFILES=$dir
       . "$dir/.depotrc"
       return 0
     fi
     dir=${dir%/*}
-    [[ $dir = "$HOME" ]] && return 0
   done
  return 0
 }
