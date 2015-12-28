@@ -393,7 +393,7 @@ get_list() {
       from_id=$parent_id
 
       while [[ $from_id != 0 ]]; do
-        [[ $from_id = "${from_data[0]}" ]] && break
+        [[ $from_id = "${from_data[0]:-}" ]] && break
         from_id=$(hash_get hierarchies "$from_id")
       done
 
