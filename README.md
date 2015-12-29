@@ -132,7 +132,7 @@ brew install bash-completion
 
 ## Changelog
 
-### 0.2.0
+### 0.2.5
 
 * Release Candidate
 
