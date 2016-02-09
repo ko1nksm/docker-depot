@@ -338,6 +338,8 @@ find_defined_images() {
     return
   fi
 
+  [[ -d $DOCKERFILES ]] || return 0
+
   while IFS= read -r line; do
     local path=${line:2}
     path=${path%/*}
