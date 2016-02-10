@@ -284,13 +284,15 @@ completions() {
 }
 
 disp_id() {
+  local id
   if [[ ! $1 ]]; then
     echo "<none>"
   elif [[ $1 = 0 ]]; then
     echo "<isolated>"
   else
     if [[ $TRUNC ]]; then
-      echo "${1:0:12}"
+      id=${1#*:}
+      echo "${id:0:12}"
     else
       echo "$1"
     fi
